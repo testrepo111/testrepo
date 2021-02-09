@@ -1,0 +1,65 @@
+impor java.util.Scanner;
+class JavaDoublyLinkedList{
+    class Node{
+        int data;
+        Node next;
+        Node previous;
+        Node(int data){
+            this.data=data;
+        }
+    }
+    Node head,tail=null;
+    public void AddNode(int data){
+        Node newnode=new Node(data);
+
+        if(head==null){
+            head=tail=newNode;
+            head.previous=null;
+            head.next=null;
+        }else{
+            tail.next=newnode;
+            newnode.previous=tail;
+            tail=newnode;
+            tail.next=null;
+        }
+    }
+
+    public void print(){
+        Node temp=head;
+
+        if(temp==null){
+            System.out.println("empty");
+        }
+    }
+
+
+
+}
+public class test{
+    public static void main(String[] args){
+        JavaDoublyLinkedList d=new JavaDoublyLinkedList();
+        int ch=0,data;
+        Scanner s=new Scanner(System.in);
+
+        while(ch!=4) {
+            System.out.println("1.insert 2.delete 3.display 4.exit");
+            ch=s.nextInt();
+            case 1:
+                System.out.println("1.insert 2.delete 3.display 4.exit");
+                data=s.nextInt();
+                d.AddNode(data);
+                break;
+            case 2:
+                d.del();
+                break;
+            case 3:
+                d.print();
+                break;
+            case 4:
+                System.out.println("bye");
+                break;
+            default: System.out.println("error");
+            break;
+        }
+    }
+}
