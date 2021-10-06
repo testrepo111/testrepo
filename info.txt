@@ -1,4 +1,978 @@
 /*
+page replcmnt fifo
+
+*/
+#include<stdio.h>
+int f=-1,r=-1,queue[20];
+void enqueue(int val){
+	if(f==-1){
+		f=0;
+		r=0;
+	}
+	else{
+		r++;
+	}
+	queue[r] = val;
+}
+int dequeue(){
+	int deqval = queue[f];
+	if(f==r){
+		f=-1;
+		r=-1;
+	}
+	else{
+		f++;
+	}
+	return deqval;
+}
+int main(){
+	int f,size;
+	
+	printf("Enter page size: ");
+	scanf("%d",&size);
+	
+	int p[size];
+	
+	printf("Enter number of frames : ");
+	scanf("%d",&f);
+	
+	int frames[f];
+	
+	//set all frames as -1
+	for(int i=0;i<f;i++){
+		frames[i] = -1;
+	}
+	
+	printf("Enter page values: ");
+	for(int i=0;i<size;i++){
+		scanf("%d",&p[i]);
+	}
+	
+	int flag=0,fault=0;
+	for(int i=0;i<size;i++){
+		flag=0;
+		for(int j=0;j<f;j++){
+			if(frames[j]==-1){
+				frames[j] = p[i];
+				fault++;
+				enqueue(j);
+				flag=1;
+				break;
+			}
+			else if(frames[j]==p[i]){
+				flag=1;
+				break;
+			}
+		}
+		//replace
+		if(flag==0){
+			fault++;
+			int findex = dequeue();
+			frames[findex] = p[i];
+			enqueue(findex);
+			
+		}
+	}
+	
+	printf("\n\n%d\n\n",fault);
+	return 0;
+}
+
+
+/*
+page replacement lru
+*/
+
+
+
+#include<stdio.h>
+int f=-1,r=-1,queue[20];
+
+void enqueue(int val){
+	if(f==-1){
+		f=0;
+		r=0;
+	}
+	else{
+		r++;
+	}
+	queue[r] = val;
+	
+}
+
+int dequeue(){
+	int deqvalue = queue[f];
+	if(f==r){
+		f=-1;
+		r=-1;
+	}
+	else{
+		f++;
+	}
+	return deqvalue;
+}
+
+void setAsNegative(int value){
+	for(i=0;i<20;i++){
+		if(queue[i]==value){
+			queue[i] = -1;
+			break;
+		}
+	}
+}
+
+int main(){
+	int size,fsize,i,j;
+	
+	printf("\nEnter the number of pages: ");
+	scanf("%d",&size);
+	
+	int pages[size];
+	
+	printf("\nEnter the size of frame: ");
+	scanf("%d",&fsize);
+	
+	printf("\nEnter the age values: ");
+	for(i=0;i<size;i++){
+		scanf("%d",pages[i]);
+	}
+	
+	int frames[fsize];
+	
+	for(i=0;i<fsize;i++){
+		frames[i] = -1;
+	}
+	
+	int flag=0,fault=0;
+	for(i=0;i<size;i++){
+		flag=0;
+		for(j=0;j<fsize;j++){
+			if(frames[j]==-1){
+				frames[j] = pages[i];
+				enqueue(pages[i]);
+				fault++;
+				flag=1;
+				break;
+			}
+			else if(pages[j]==pages[i]){
+				setAsNegative(pages[i]);
+				flag=1;
+				enqueue(pages[i]);
+				break;
+			}
+		}
+		//no free space, no frame value = new value
+		if(flag==0){
+			int x = dequeue();
+			while(x==-1){
+				x = dequeue();
+			}
+			//from the queue we find the LRU one and search for it in the frames, after finding it we replace it witht the new value.
+			for(j=0;j<r;j++){
+				if(frames[j]==x){
+					frames[j] = pages[i]; 
+					break;
+				}
+			}
+			//enqueue(pages[i]);
+			
+		}
+	}
+	
+	return 0;
+}
+*/
+
+#include<stdio.h>
+int front=-1,rear=-1,que[20];
+
+//used to store page values to queue
+void add(int num)
+{
+	if(front==-1)
+	{
+		front=0;
+		rear=0;
+	}
+	else
+	{
+		rear++;
+	}
+	que[rear]=num;
+}
+int ret()
+{
+	int retval=que[front];
+	if(front==rear)
+	{
+		front=-1;
+		rear=-1;
+	}
+	else
+	{
+		front++;
+	}
+	return retval;
+}
+void removi(int num)
+{
+    int i;
+	for(i=0;i<20;i++)
+	{
+		if(que[i]==num)
+		{
+			que[i]=-1;
+			break;
+		}
+	}
+}
+void main()
+{
+	int i,j,p,r,page[20],frame[20],fault=0,flag=0;
+	printf("\nenter the number of pages");
+	scanf("%d",&p);
+	printf("\nenter the number of frames");
+	scanf("%d",&r);
+	printf("\nenter the page number");
+	for(i=0;i<p;i++)
+	{
+		scanf("%d",&page[i]);
+	}
+	for(i=0;i<r;i++)
+	{
+		frame[i]=-1;
+	}
+	for(i=0;i<p;i++)
+	{
+	    flag=0;
+		for(j=0;j<r;j++)
+		{
+			//if frame is empty
+			if(frame[j]==-1)
+			{
+				//add page to the frame
+				frame[j]=page[i];
+				//enqueue frame VALUE to the queue NOT INDEX
+				add(page[i]);
+				flag=1;
+				fault++;
+				//IMPORTANT
+				break;
+			}
+			//if frame value is same as new page value
+			else if(frame[j]==page[i])
+			{
+				flag=1;
+				//remove specific VALUE from the queue
+				removi(page[i]);
+				//enqueue the new page VALUE to the queue
+				add(page[i]);
+				break;
+			}
+		}
+		//no frames free and new value is not present in frames
+		if(flag==0)
+		{
+			fault++;
+			int m=ret();
+			//dequeue values from queue if the value is -1
+			while(m==-1)
+			{
+				m=ret();
+			}
+							
+			//replace the dequeued value from the frame with new value
+			for(j=0;j<r;j++)
+			{
+				if(frame[j]==m)
+				{
+					frame[j]=page[i];
+					break;
+				}
+			}
+		}
+	}
+	printf("\nthe page fault is %d",fault);
+}
+
+
+/*
+page replacemnt lfu
+*/
+
+
+
+#include<stdio.h>
+//create a queue and a arr called count to store the frequency of each page arriving
+int front=-1,rear=-1,que[20],count[20];
+
+//function to find the value from the queue having the smallest count associated with it.
+int smallest()
+{
+    int i;
+	int smallest=count[que[0]];
+	int retval=que[0];
+	for(i=front;i<=rear;i++)
+	{
+		if(que[i]!=-1)
+		{
+			if(count[que[i]]>smallest)
+			{
+				smallest=count[que[i]];
+				retval=que[i];
+			}
+		}
+	}
+	printf("\n\nsmallest = %d\n\n",smallest);
+	printf("\n\nretval = %d\n\n",retval);
+	return retval;
+}
+
+//enqueue operation to the queue
+void add(int num)
+{
+	if(front==-1)
+	{
+		front=0;
+		rear=0;
+	}
+	else
+	{
+		rear++;
+	}
+	que[rear]=num;
+}
+//dequeue operation of the queue
+void delete(int num)
+{
+    int i;
+	for(i=front;i<=rear;i++)
+	{
+		if(que[i]==num)
+		{
+			que[i]=-1;
+			break;
+		}
+	}
+}		
+void main()
+{
+	int fault=0,i,p,r,page[20],frame[20],j;
+	printf("\nenter the number of pages");
+	scanf("%d",&p);
+	printf("\nenter the number of memory");
+	scanf("%d",&r);
+	printf("\nenter the page number");
+	for(i=0;i<p;i++)
+	{
+		scanf("%d",&page[i]);
+		count[page[i]]=0;
+	}
+	
+	//settings all the frames to -1
+	for(i=0;i<r;i++)
+	{
+		frame[i]=-1;
+	}
+	
+	for(i=0;i<p;i++)
+	{
+		int flag=0;
+		for(j=0;j<r;j++)
+		{	
+			//if frame is empty then add to the frame
+			if(frame[j]==-1)
+			{
+				//store page value to the frame
+				frame[j]=page[i];
+				
+				count[page[i]]++;
+				
+				//add page value to the queue
+				add(page[i]);
+				fault++;
+				flag=1;
+				break;
+			}
+			//if frame value is same as new page value
+			else if(frame[j]==page[i])
+			{
+				count[page[i]]++;
+				
+				flag=1;
+				delete(page[i]);
+				add(page[i]);
+				break;
+			}
+		}
+		if(flag==0)
+		{
+		    fault++;
+			
+			int y=smallest();
+			
+			for(j=0;j<r;j++)
+			{
+				if(frame[j]==y)
+				{
+					count[y]=0;
+					
+					frame[j]=page[i];
+					count[page[i]]++;
+				}
+			}
+		}
+	}
+	printf("\nthe page fault is %d",fault);
+}
+
+/*
+prio at
+*/
+//priority scheduling
+#include<stdio.h>
+struct process
+{
+	int at;
+	int bt;
+	int prio;
+	int bef;
+	int ct;
+	int btstat;
+}p[20];
+int j,k,m,n,temp,tot=0,ch,flag,great,retval,tt,wt;
+float ttt,twt;
+int arr[20];
+void bubblesort()
+{
+    int i;
+	for(i=0;i<n-1;i++)
+	{
+		for(j=0;j<n-i-1;j++)
+		{
+			if(p[j].at>p[j+1].at)
+			{
+				temp=p[j].at;
+				p[j].at=p[j+1].at;
+				p[j+1].at=temp;
+			
+				temp=p[j].bt;
+				p[j].bt=p[j+1].bt;
+				p[j+1].bt=temp;
+			
+				temp=p[j].prio;
+				p[j].prio=p[j+1].prio;
+				p[j+1].prio=temp;
+				
+				temp=p[j].bef;
+				p[j].bef=p[j+1].bef;
+				p[j+1].bef=temp;
+
+				temp=p[j].btstat;
+				p[j].btstat=p[j+1].btstat;
+				p[j+1].btstat=temp;
+			}
+		}
+	}
+}
+int greatprio()
+{
+    int i;
+    great=p[arr[0]].prio;
+    retval=arr[0];
+    for(i=0;i<k;i++)
+    {
+        if(p[arr[i]].prio<great)
+        {
+            great=p[arr[i]].prio;
+            retval=arr[i];
+        }
+    }
+    return retval;
+}
+void nonpre()
+{
+    int i;
+	for(i=0;i<=tot;i++)
+	{
+		k=0;
+		flag=0;
+		for(j=0;j<n;j++)
+		{
+			if(p[j].at<=i&&p[j].btstat!=0)
+			{
+				arr[k]=j;
+				flag=1;
+				k++;
+			}
+		}
+		if(flag==1)
+		{
+			int m=greatprio();
+			i=i+p[m].btstat;
+			p[m].ct=i;
+			p[m].btstat=0;
+			printf("\nP%d",p[m].bef);
+			i--;
+			for(j=0;j<k;j++)
+			{
+				arr[j]=0;
+			}
+		}
+	}
+}
+void pre()
+{
+	int i,prev=-1;
+	for(i=0;i<=tot;i++)
+	{
+	    k=0;
+	    flag=0;
+	    for(j=0;j<n;j++)
+	    {
+	        if(p[j].at<=i&&p[j].btstat!=0)
+	        {
+	            arr[k]=j;
+	            flag=1;
+	            k++;
+	        }
+	    }
+	    if(flag==1)
+	    {
+	        int m=greatprio();
+	        p[m].btstat--;
+	        if(p[m].btstat==0)
+	        {
+	            p[m].ct=i+1;
+	        }
+	        if(prev!=p[m].bef)
+	        {
+	            printf("\n%d",p[m].bef);
+	            prev=p[m].bef;
+	        }
+	        for(j=0;j<k;j++)
+			{
+				arr[j]=0;
+			}
+	    }
+	}
+}		
+			
+void main()
+{
+    int i;
+	printf("\nenter the number of process");
+	scanf("%d",&n);
+	printf("\nenter the arrival time,burst time and priority");
+	for(i=0;i<n;i++)
+	{
+		printf("\nprocess %d\narrival time:\t",i+1);
+		scanf("%d",&p[i].at);
+		printf("\nburst time:\t");
+		scanf("%d",&p[i].bt);
+		printf("\npriority:\t");
+		scanf("%d",&p[i].prio);
+		p[i].bef=i+1;
+		p[i].btstat=p[i].bt;
+		tot=tot+p[i].bt;
+	}
+	printf("\nenter the option:\n1.preemtive\n2.non premeptive\n");
+	scanf("%d",&ch);
+	bubblesort();
+	switch(ch)
+	{
+		case 1:
+			{
+				pre();
+				break;
+			}
+		case 2:
+			{
+				nonpre();
+				break;
+			}
+	}
+	printf("\nPROCESS BURST ARRIVAL PRIORITY COMPLETION WAITING TURNAROUND");
+	for(i=0;i<n;i++)
+	{
+		tt=p[i].ct-p[i].at;
+		wt=tt-p[i].bt;
+		twt=twt+wt;
+		ttt=ttt+tt;
+		printf("\n%d\t%d\t%d\t%d\t%d\t%d\t%d",p[i].bef,p[i].bt,p[i].at,p[i].prio,p[i].ct,wt,tt);
+	}
+	printf("\naverage turn around time %f",ttt/n);
+	printf("\naverage waiting time %f",twt/n);
+}
+
+
+/*
+rr at	
+*/
+
+#include<stdio.h>
+int front=-1,rear=-1;
+int arr[20];
+struct process
+{
+	int bt;
+	int at;
+	int btstat;
+	int inque;
+	int ct;
+	int bef;
+}p[20];
+void add(int m)
+{
+	if(front==-1)
+	{
+		front=0;
+		rear=0;
+	}
+	else
+	{
+		rear++;
+	}
+	arr[rear]=m;
+}
+int deque()
+{
+    if(front==-1&&rear==-1)
+    {
+        return -1;
+    }
+    else
+    {
+	    int ret=arr[front];
+	    if(front==rear)
+	    {
+		    front=-1;
+	    	rear=-1;
+	    }
+	    else
+	    {
+		    front++;
+        }
+	    return ret;
+    }
+}
+void bubblesort(int n)
+{
+    int i,j,temp1,temp2,temp3,temp4;
+    for(i=0;i<n-1;i++)
+    {
+        for(j=0;j<n-i-1;j++)
+        {
+            if(p[j].at>p[j+1].at)
+            {
+                temp1=p[j].at;
+                p[j].at=p[j+1].at;
+                p[j+1].at=temp1;
+                
+                temp2=p[j].bt;
+                p[j].bt=p[j+1].bt;
+                p[j+1].bt=temp2;
+                
+                temp3=p[j].bef;
+                p[j].bef=p[j+1].bef;
+                p[j+1].bef=temp3;
+                
+                temp4=p[j].btstat;
+                p[j].btstat=p[j+1].btstat;
+                p[j+1].btstat=temp4;
+            }
+        }
+    }
+}
+void main()
+{
+	int n,i,j,tot=0,q,prev=-1,tt,wt,z=-1,totcom=0;
+	float twt,ttt;
+	printf("\nenter the number of process");
+	scanf("%d",&n);
+	printf("\nenter the burst time and the arrival time");
+	for(i=0;i<n;i++)
+	{
+		printf("\nprocess:%d\nburst time:\t",i+1);
+		scanf("%d",&p[i].bt);
+		printf("\narrival time:\t");
+		scanf("%d",&p[i].at);
+		p[i].btstat=p[i].bt;
+		p[i].bef=i;
+		p[i].inque=0;
+		tot=tot+p[i].bt;
+	}
+	bubblesort(n);
+	printf("\nenter the time quantum");
+	scanf("%d",&q);
+	printf("\nthe order of execution is");
+	for(i=0;i<=tot;i++)
+	{
+	    for(j=0;j<n;j++)
+	    {
+	        if(p[j].at<=i&&p[j].inque==0)
+	        {
+	            add(j);
+	            p[j].inque=1;
+	        }
+	    }
+	    if(p[z].btstat!=0)
+	    {
+	        add(z);
+	    }
+	    int m=deque();
+	    if(m!=-1)
+	    {
+	        if(p[m].btstat<=q)
+	        {
+	            i=i+p[m].btstat;
+	            printf("\n%d",p[m].bef+1);
+	            p[m].btstat=0;
+	            p[m].ct=i;
+	            i--;
+	        }
+	        else
+	        {
+	            p[m].btstat=p[m].btstat-q;
+	            printf("\n%d",p[m].bef+1);
+	            i=i+q;
+	            i--;
+	        }
+	        z=m;
+	    }
+	}
+	printf("\nPROCESS BURST ARRIVAL COMPLETION WAITING TURNAROUND");
+	for(i=0;i<n;i++)
+	{
+		tt=p[i].ct-p[i].at;
+		wt=tt-p[i].bt;
+		twt=twt+wt;
+		ttt=ttt+tt;
+		printf("\n%d\t%d\t%d\t%d\t%d\t%d",p[i].bef+1,p[i].bt,p[i].at,p[i].ct,wt,tt);
+	}
+	printf("\naverage turn around time %f",ttt/n);
+	printf("\naverage waiting time %f",twt/n);
+}
+
+/*
+sjf at non-premp
+
+*/
+
+#include<stdio.h>
+struct process
+{
+	int at;
+	int bt;
+	int ct;
+	int beg;
+	int stat;
+}p[20];
+int smallest(int arr2[],int m)
+{
+	int u,retval;
+	int small=p[arr2[0]].bt;
+	retval=arr2[0];
+	for(u=0;u<m;u++)
+	{
+		if(small>p[arr2[u]].bt)
+		{
+			small=p[arr2[u]].bt;
+			retval=arr2[u];
+		}
+	}
+	return retval;
+}
+void main()
+{
+    int n,i,j,k,tot=0,flag,l,tt,wt;
+    float twt,ttt;
+    int arr[20];
+	printf("\nenter the number of prcess");
+	scanf("%d",&n);
+	printf("\nenter the arrival time and the burst time");
+	for(i=0;i<n;i++)
+	{
+		printf("\nPROCESS%d",i+1);
+		printf("\narrival time:");
+		scanf("%d",&p[i].at);
+		printf("\nburst time:");
+		scanf("%d",&p[i].bt);
+		p[i].beg=i+1;
+		tot=tot+p[i].bt;
+		p[i].stat=0;
+	}
+	for(j=0;j<=tot;j++)
+	{
+		flag=0;
+		k=0;
+		for(i=0;i<n;i++)
+		{
+			if(p[i].at<=j&&p[i].stat==0)
+			{
+				arr[k]=i;
+				flag=1;
+				k++;
+			}
+		}
+		if(flag==1)
+			{
+				int m=smallest(arr,k);
+				printf("\nthe smallest is %d",m);
+				j=j+p[m].bt;
+				printf("\n%d",p[m].beg);
+				p[m].stat=1;
+				p[m].ct=j;
+				printf("\nthe completion time %d",p[m].ct);
+				j--;
+				for(l=0;l<=k;l++)
+				{
+					arr[l]=0;
+				}
+			}
+	}
+	printf("\nPROCESS BURST ARRIVAL COMPLETION WAITING TURNAROUND");
+	for(i=0;i<n;i++)
+	{
+		tt=p[i].ct-p[i].at;
+		wt=tt-p[i].bt;
+		twt=twt+wt;
+		ttt=ttt+tt;
+		printf("\n%d\t%d\t%d\t%d\t%d\t%d",i+1,p[i].bt,p[i].at,p[i].ct,wt,tt);
+	}
+	printf("\naverage turn around time %f",ttt/n);
+	printf("\naverage waiting time %f",twt/n);
+}
+
+
+/*
+
+
+sjf at premptive
+*/
+
+//sjf premeptive
+#include<stdio.h>
+struct process
+{
+	int at;
+	int bt;
+	int btstat;
+	int stat;
+	int ct;
+	int bef;
+}p[20];
+int smallest(int arr[],int k)
+{
+    int i;
+    int small=p[arr[0]].btstat;
+    int retvalue=arr[0];
+    for(i=0;i<k;i++)
+    {
+        if(p[arr[i]].btstat<small)
+        {
+            small=p[arr[i]].btstat;
+            retvalue=arr[i];
+        }
+    }
+    return retvalue;
+}
+void bubblesort(int n)
+{
+    int i,j,temp1,temp2,temp3,temp4;
+    for(i=0;i<n-1;i++)
+    {
+        for(j=0;j<n-i-1;j++)
+        {
+            if(p[j].at>p[j+1].at)
+            {
+                temp1=p[j].at;
+                p[j].at=p[j+1].at;
+                p[j+1].at=temp1;
+                
+                temp2=p[j].bt;
+                p[j].bt=p[j+1].bt;
+                p[j+1].bt=temp2;
+                
+                temp3=p[j].bef;
+                p[j].bef=p[j+1].bef;
+                p[j+1].bef=temp3;
+                
+                temp4=p[j].btstat;
+                p[j].btstat=p[j+1].btstat;
+                p[j+1].btstat=temp4;
+            }
+        }
+    }
+}
+void main()
+{
+	int n,j,tot=0,i,k,flag,tt,wt,m,prev=-1;
+	float ttt,twt;
+	int arr[20];
+	printf("\nenter the number of process");
+	scanf("%d",&n);
+	printf("\nenter the burst time and the arrival time");
+	for(i=0;i<n;i++)
+	{
+		printf("\nprocess:%d\nburst time:\t",i+1);
+		scanf("%d",&p[i].bt);
+		printf("\narrival time:\t");
+		scanf("%d",&p[i].at);
+		p[i].stat=0;
+		p[i].btstat=p[i].bt;
+		p[i].bef=i;
+		tot=tot+p[i].bt;
+	}
+	bubblesort(n);
+	printf("\nthe order of execution is ");
+	for(i=0;i<=tot;i++)
+	{
+		k=0;
+		flag=0;
+		for(j=0;j<n;j++)
+		{
+			if(p[j].at<=i&&p[j].stat==0)
+			{
+				arr[k]=j;
+				flag=1;
+				k++;
+			}
+		}
+		if(flag==1)
+		{
+			int s=smallest(arr,k);
+			p[s].btstat--;
+			if(prev!=s)
+			{
+			    printf("\nP%d",p[s].bef+1);
+			    prev=s;
+			}
+			if(p[s].btstat==0)
+			{	
+				p[s].ct=i+1;
+				p[s].stat=1;
+			}
+			for(j=0;j<=k;j++)
+			{
+				arr[j]=0;
+			}
+		}
+	}
+	printf("\nPROCESS BURST ARRIVAL COMPLETION WAITING TURNAROUND");
+	for(i=0;i<n;i++)
+	{
+		tt=p[i].ct-p[i].at;
+		wt=tt-p[i].bt;
+		twt=twt+wt;
+		ttt=ttt+tt;
+		printf("\n%d\t%d\t%d\t%d\t%d\t%d",p[i].bef+1,p[i].bt,p[i].at,p[i].ct,wt,tt);
+	}
+	printf("\naverage turn around time %f",ttt/n);
+	printf("\naverage waiting time %f",twt/n);
+}
+
+/*
 Bankers Algorithm
 */
 #include<stdio.h>
@@ -563,3 +1537,58 @@ int main(){
 	}
 	return 0;
 }
+
+
+/*
+IO system calls
+*/
+
+/*
+lseek(file-var,offsetvalue,offset-position)
+
+examples:
+lseek(fd,5,SEEK_SET) – this moves the pointer 5 positions ahead starting from the beginning of the file
+lseek(fd,5,SEEK_CUR) – this moves the pointer 5 positions ahead from the current position in the file
+lseek(fd,-5,SEEK_CUR) – this moves the pointer 5 positions back from the current position in the file
+lseek(fd,-5,SEEK_END) -> this moves the pointer 5 positions back from the end of the file
+
+*/
+#include<unistd.h>
+#include<stdio.h>
+#include<fcntl.h>
+int main(){
+	
+	int fd;
+	char buffer[100];
+	char msg[100] = "hello!";
+	
+	//syntax open("file-name","opening-method");
+	fd = open("test.txt",O_RDWR); 
+	//O-RDWR means OPEN in READ, WRITE mode
+	
+	if(fd!=-1){
+		printf("File exists\n");
+		
+		//write message to the file
+		//syntax- write(file-var,message,sizeofmessage[sizeof(msg-var-name)])
+		write(fd,msg,sizeof(msg));
+		
+		//sets cursor to the beginning of the file
+		lseek(fd,0,SEEK_SET);
+		
+		//read from the file
+		//read a sizeof() quantity into the buffer
+		read(fd,buffer,sizeof(msg));
+		
+		printf("File content: %s",buffer);
+		
+		close(fd);
+		//finally close the file
+		
+	}
+	else{
+		printf("File does not exist. Create a file using touch command");
+	}
+	return 0;
+}
+
